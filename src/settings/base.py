@@ -41,7 +41,9 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "app_event_place",
+    "app_event",
     "imagekit",
+    "ninja_jwt",
 ]
 
 MIDDLEWARE = [

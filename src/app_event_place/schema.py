@@ -11,6 +11,8 @@ class EventPlaceSchema(Schema):
 class EventPlaceListSchema(Schema):
     data: list[EventPlaceSchema]
     total: int
+    limit: int
+    offset: int
 
 
 class EventPlaceCreateSchema(Schema):
