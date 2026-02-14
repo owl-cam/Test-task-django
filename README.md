@@ -4,11 +4,10 @@ Django-приложение для управления мероприятиям
 
 ## Стек
 
-- Python 3.14
+- Python 3.12
 - Django 5.2
 - PostgreSQL 17
 - django-ninja (API)
-- django-jazzmin (админка)
 - django-imagekit (обработка изображений)
 
 ## Запуск в Docker
