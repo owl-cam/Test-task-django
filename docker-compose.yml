@@ -1,0 +1,24 @@
+version: "3.8"
+services:
+  server:
+    build: .
+    container_name: test-server
+    command: uv run manage.py runserver 0.0.0.0:8000
+    # restart: always
+    environment:
+      DJANGO_SETTINGS_MODULE: "settings.base"
+    env_file:
+      - src/.env
+    ports:
+      - 8000:8000
+    volumes:
+      - ./src:/app
+  db:
+    image: postgres:17-alpine
+    container_name: db_test
+    ports:
+      - 5432:5432
+    volumes:
+      - ./db_data:/var/lib/postgresql/data
+    env_file:
+      - src/.env
