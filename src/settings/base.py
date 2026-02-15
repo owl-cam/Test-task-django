@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 from pathlib import Path
+from typing import OrderedDict
 
 import environ
 
@@ -45,6 +46,9 @@ INSTALLED_APPS = [
     "app_weather",
     "imagekit",
     "ninja_jwt",
+    "post_office",
+    "constance",
+    "tinymce",
 ]
 
 MIDDLEWARE = [
@@ -129,3 +133,39 @@ MEDIA_ROOT = BASE_DIR / "media"
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 WEATHER_API_KEY = env("WEATHER_API_KEY")
+
+CELERY_BROKER_URL = env("CELERY_BROKER_URL", default="redis://localhost:6379/0")
+
+CONSTANCE_BACKEND = "constance.backends.database.DatabaseBackend"
+CONSTANCE_ADDITIONAL_FIELDS = {
+    "tinymce_field": [
+        "django.forms.CharField",
+        {"widget": "tinymce.widgets.TinyMCE"},
+    ],
+}
+CONSTANCE_CONFIG = OrderedDict(
+    [
+        # mail
+        ("EMAIL_TO", ("owlcam@yandex.ru,test@example.ru", "Списко адресатов")),
+        ("EMAIL_SUBJECT", ("Новое мероприятие!", "Тема письма")),
+        ("EMAIL_TEXT", ("Текст письма", "Текст письма", "tinymce_field")),
+    ]
+)
+CONSTANCE_CONFIG_FIELDSETS = {
+    "Настройки рассылки": (
+        "EMAIL_TO",
+        "EMAIL_SUBJECT",
+        "EMAIL_TEXT",
+    ),
+}
+
+
+EMAIL_BACKEND = env(
+    "EMAIL_BACKEND", default="django.core.mail.backends.console.EmailBackend"
+)
+EMAIL_HOST = env("EMAIL_HOST", default="")
+EMAIL_PORT = env("EMAIL_PORT", int, 587)
+EMAIL_HOST_USER = env("EMAIL_HOST_USER", default="user")
+EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD", default="****")
+EMAIL_USE_TLS = env("EMAIL_USE_TLS", bool, False)
+EMAIL_USE_SSL = env("EMAIL_USE_SSL", bool, True)

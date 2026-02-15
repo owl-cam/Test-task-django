@@ -22,3 +22,35 @@ services:
       - ./db_data:/var/lib/postgresql/data
     env_file:
       - src/.env
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis_test
+
+  celery-worker:
+    build: .
+    container_name: test-celery-worker
+    command: uv run celery -A proj worker -l info
+    environment:
+      DJANGO_SETTINGS_MODULE: "settings.base"
+    env_file:
+      - src/.env
+    volumes:
+      - ./src:/app
+    depends_on:
+      - db
+      - redis
+
+  celery-beat:
+    build: .
+    container_name: test-celery-beat
+    command: uv run celery -A proj beat -l info
+    environment:
+      DJANGO_SETTINGS_MODULE: "settings.base"
+    env_file:
+      - src/.env
+    volumes:
+      - ./src:/app
+    depends_on:
+      - db
+      - redis

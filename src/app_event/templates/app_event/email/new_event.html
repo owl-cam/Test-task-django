@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ event.name }}</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #f4f4f4; font-family: Arial, sans-serif; font-size: 16px; color: #333333;">
+  <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color: #f4f4f4;">
+    <tr>
+      <td align="center" style="padding: 30px 0;">
+        <table width="600" cellpadding="0" cellspacing="0" border="0" style="max-width: 600px; width: 100%; background-color: #ffffff; border-radius: 4px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+
+          <!-- Шапка -->
+          <tr>
+            <td style="background-color: #2c3e50; padding: 30px 40px;">
+              <h1 style="margin: 0; font-size: 24px; font-weight: bold; color: #ffffff; line-height: 1.3;">
+                {{ event.name }}
+              </h1>
+            </td>
+          </tr>
+
+          <!-- Основная информация -->
+          <tr>
+            <td style="padding: 30px 40px;">
+              {% if event.description %}
+              <p style="margin: 0 0 20px 0; font-size: 16px; line-height: 1.6; color: #555555;">
+                {{ event.description }}
+              </p>
+              {% endif %}
+
+              <table width="100%" cellpadding="0" cellspacing="0" border="0" style="border-top: 1px solid #eeeeee; padding-top: 20px; margin-top: 10px;">
+                <tr>
+                  <td style="padding: 8px 0; vertical-align: top; width: 140px;">
+                    <span style="font-size: 14px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px;">Начало</span>
+                  </td>
+                  <td style="padding: 8px 0; vertical-align: top;">
+                    <span style="font-size: 15px; color: #333333;">{{ event.start_date }}</span>
+                  </td>
+                </tr>
+                {% if event.end_date %}
+                <tr>
+                  <td style="padding: 8px 0; vertical-align: top; width: 140px;">
+                    <span style="font-size: 14px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px;">Окончание</span>
+                  </td>
+                  <td style="padding: 8px 0; vertical-align: top;">
+                    <span style="font-size: 15px; color: #333333;">{{ event.end_date }}</span>
+                  </td>
+                </tr>
+                {% endif %}
+                {% if event.place %}
+                <tr>
+                  <td style="padding: 8px 0; vertical-align: top; width: 140px;">
+                    <span style="font-size: 14px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px;">Место</span>
+                  </td>
+                  <td style="padding: 8px 0; vertical-align: top;">
+                    <span style="font-size: 15px; color: #333333;">{{ event.place.name }}</span>
+                  </td>
+                </tr>
+                {% endif %}
+                {% if event.author %}
+                <tr>
+                  <td style="padding: 8px 0; vertical-align: top; width: 140px;">
+                    <span style="font-size: 14px; font-weight: bold; color: #888888; text-transform: uppercase; letter-spacing: 0.5px;">Организатор</span>
+                  </td>
+                  <td style="padding: 8px 0; vertical-align: top;">
+                    <span style="font-size: 15px; color: #333333;">{{ event.author }}</span>
+                  </td>
+                </tr>
+                {% endif %}
+              </table>
+            </td>
+          </tr>
+
+          <!-- Текст из Constance (EMAIL_TEXT) -->
+          {% if email_text %}
+          <tr>
+            <td style="padding: 0 40px 30px 40px;">
+              <div style="background-color: #f9f9f9; border-left: 4px solid #2c3e50; padding: 20px; font-size: 15px; line-height: 1.7; color: #555555;">
+                {{ email_text|safe }}
+              </div>
+            </td>
+          </tr>
+          {% endif %}
+
+          <!-- Подвал -->
+          <tr>
+            <td style="background-color: #f0f0f0; padding: 20px 40px; border-top: 1px solid #dddddd;">
+              <p style="margin: 0; font-size: 13px; color: #999999; text-align: center; line-height: 1.5;">
+                Это письмо сформировано автоматически. Пожалуйста, не отвечайте на него.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
