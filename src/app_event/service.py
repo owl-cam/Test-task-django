@@ -1,6 +1,7 @@
 from django.db.models import Q
 
 from app_event_place.domain import EventPlaceDomain
+from app_weather.domain import WeatherDomain
 
 from .domain import (
     EventCreateDomain,
@@ -34,7 +35,7 @@ class EventService:
         if total == 0:
             return EventListDomain(data=[], total=0, limit=limit, offset=offset)
         filters_list, filters_dict = self._prepare_filters(filters)
-        data = Event.objects.select_related("place").filter(
+        data = Event.objects.select_related("place", "place__weather").filter(
             *filters_list, **filters_dict
         )[offset : limit + offset]
         if order:
@@ -65,7 +66,7 @@ class EventService:
     def _get_one(self, filters: EventFilterDomain) -> EventDomain | None:
         filters_list, filters_dict = self._prepare_filters(filters)
         db_model = (
-            Event.objects.select_related("place")
+            Event.objects.select_related("place", "place__weather")
             .filter(*filters_list, **filters_dict)
             .first()
         )
@@ -108,11 +109,25 @@ class EventService:
     def _to_domain(self, event: Event) -> EventDomain:
         place = None
         if event.place_id is not None:
+            weather = None
+            try:
+                w = event.place.weather
+                weather = WeatherDomain(
+                    temp=w.temp,
+                    condition=w.condition,
+                    humidity=w.humidity,
+                    pressure=w.pressure,
+                    wind_dir=w.wind_dir,
+                    wind_speed=w.wind_speed,
+                )
+            except Exception:
+                pass
             place = EventPlaceDomain(
                 id=event.place.id,
                 name=event.place.name,
                 long=event.place.long,
                 lat=event.place.lat,
+                weather=weather,
             )
         return EventDomain(
             id=event.id,

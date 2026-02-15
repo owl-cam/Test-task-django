@@ -1,11 +1,14 @@
 from ninja import Schema
 
+from app_weather.schema import WeatherSchema
+
 
 class EventPlaceSchema(Schema):
     id: int
     name: str
     long: float
     lat: float
+    weather: WeatherSchema | None = None
 
 
 class EventPlaceListSchema(Schema):

@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "app_event_place",
     "app_event",
+    "app_weather",
     "imagekit",
     "ninja_jwt",
 ]
@@ -126,3 +127,5 @@ MEDIA_ROOT = BASE_DIR / "media"
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+WEATHER_API_KEY = env("WEATHER_API_KEY")

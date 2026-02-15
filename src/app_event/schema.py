@@ -19,7 +19,6 @@ class EventSchema(Schema):
     start_date: datetime
     end_date: datetime
     author: str
-    place_id: int | None = None
     place: EventPlaceSchema | None = None
     rate: int
     status: EventStatus
