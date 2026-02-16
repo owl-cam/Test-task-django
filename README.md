@@ -13,12 +13,21 @@ Django-приложение для управления мероприятиям
 - django-post-office (очередь email)
 - django-constance (динамические настройки через admin)
 - django-imagekit (обработка изображений)
+- openpyxl (импорт/экспорт XLSX)
 
 ## Архитектура
 
-- **app_event** — CRUD мероприятий. Неавторизованные и обычные пользователи видят только опубликованные события.
+- **app_event** — CRUD мероприятий с поддержкой изображений, импорта/экспорта XLSX. Неавторизованные и обычные пользователи видят только опубликованные события. Суперпользователь — все операции.
 - **app_event_place** — Площадки (название + координаты). Только суперпользователь.
-- **app_weather** — Погода по площадкам. Обновляется через Celery каждый час.
+- **app_weather** — Погода по площадкам. Обновляется через Celery каждый час (weatherapi.com).
+
+### Слои архитектуры (app_event)
+
+```
+HTTP → schema.py (валидация) → service.py (бизнес-логика) → ORM models
+                ↕
+         domain.py (Pydantic модели)
+```
 
 ### Фоновые задачи (Celery Beat)
 
@@ -131,7 +140,91 @@ uv run celery -A proj beat -l info
 
 Документация: http://localhost:8000/api/v1/docs
 
-- `POST /api/v1/auth/token/` — получить JWT токен
-- `GET/POST /api/v1/event/` — список и создание мероприятий
-- `GET/PUT/DELETE /api/v1/event/{id}/` — детали, редактирование, удаление
-- `GET/POST /api/v1/event_place/` — площадки (только суперпользователь)
+### Авторизация
+
+| Метод | Путь | Описание |
+|---|---|---|
+| POST | `/api/v1/auth/token/pair` | Получить access + refresh токены |
+| POST | `/api/v1/auth/token/verify` | Проверить access токен |
+| POST | `/api/v1/auth/token/refresh` | Обновить access токен |
+
+### Мероприятия
+
+| Метод | Путь | Описание | Доступ |
+|---|---|---|---|
+| GET | `/api/v1/event/` | Список (фильтры, пагинация, сортировка) | все |
+| POST | `/api/v1/event/` | Создать | superuser |
+| GET | `/api/v1/event/{id}` | Получить | все (published) |
+| PATCH | `/api/v1/event/{id}` | Обновить | superuser |
+| DELETE | `/api/v1/event/{id}` | Удалить | superuser |
+| GET | `/api/v1/event/export` | Экспорт в XLSX | superuser |
+| POST | `/api/v1/event/import` | Импорт из XLSX | superuser |
+| POST | `/api/v1/event/image` | Загрузить фото | superuser |
+| DELETE | `/api/v1/event/image/{id}` | Удалить фото | superuser |
+
+### Площадки
+
+| Метод | Путь | Описание | Доступ |
+|---|---|---|---|
+| GET | `/api/v1/event_place/` | Список | superuser |
+| POST | `/api/v1/event_place/` | Создать | superuser |
+| GET | `/api/v1/event_place/{id}` | Получить | superuser |
+| PATCH | `/api/v1/event_place/{id}` | Обновить | superuser |
+| DELETE | `/api/v1/event_place/{id}` | Удалить | superuser |
+
+### Фильтрация и сортировка (GET /api/v1/event/)
+
+**Фильтры:**
+- `start_date_from`, `start_date_to` — диапазон даты начала
+- `end_date_from`, `end_date_to` — диапазон даты окончания
+- `place_id` — множественный выбор площадок
+- `rate_from`, `rate_to` — диапазон рейтинга (0-25)
+- `search` — поиск по названию мероприятия или площадки
+
+**Сортировка:**
+- `name` — по названию
+- `start_date` — по дате начала
+- `end_date` — по дате окончания
+
+## Импорт/Экспорт XLSX
+
+### Экспорт
+
+`GET /api/v1/event/export` — скачать XLSX файл с мероприятиями.
+
+Фильтры:
+- `publish_date_from`, `publish_date_to`
+- `start_date_from`, `start_date_to`
+- `end_date_from`, `end_date_to`
+- `place_id` (множественный)
+- `rate_from`, `rate_to`
+
+### Импорт
+
+`POST /api/v1/event/import` — загрузить XLSX файл.
+
+Обязательные колонки: Название, Описание, Дата начала, Дата окончания, Рейтинг.
+
+Особенности:
+- Автоматически создаёт площадки, если указаны координаты
+- Валидация каждой строки с детальными ошибками
+- Транзакционное сохранение (все или ничего)
+
+## Тесты
+
+85 тестов покрывают основной функционал:
+
+```bash
+# Запуск всех тестов
+cd src && uv run pytest
+
+# С покрытием
+uv run pytest --cov=. --cov-report=html
+```
+
+| Модуль | Тестов | Описание |
+|---|---|---|
+| test_auth | 6 | JWT токены: получение, верификация, обновление |
+| test_event | 54 | CRUD, фильтрация, пагинация, изображения, импорт/экспорт |
+| test_event_place | 24 | CRUD площадок, права доступа |
+| test_healthcheck | 1 | Проверка работоспособности |

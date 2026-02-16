@@ -10,7 +10,7 @@ DJANGO_SETTINGS_MODULE = "tests.settings_test"
 pythonpath = ["."]
 
 [project]
-name = "testovoe"
+name = "testovoe-django"
 version = "0.1.0"
 description = "Тестовое задание"
 readme = "README.md"
