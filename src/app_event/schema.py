@@ -79,3 +79,30 @@ class EventFilterSchema(Schema):
             place_id_in=self.place_id_in.split(",") if self.place_id_in else None,
             **self.dict(exclude_unset=True, exclude={"place_id_in"}),
         )
+
+
+class EventExportFilterSchema(Schema):
+    publish_date_gte: datetime | None = None
+    publish_date_lte: datetime | None = None
+    start_date_gte: datetime | None = None
+    start_date_lte: datetime | None = None
+    end_date_gte: datetime | None = None
+    end_date_lte: datetime | None = None
+    place_id: int | None = None
+    rate_gte: int | None = None
+    rate_lte: int | None = None
+
+
+class ImportRowError(Schema):
+    row: int
+    field: str
+    error: str
+    value: str | None = None
+
+
+class ImportResultSchema(Schema):
+    success: bool
+    total_rows: int
+    imported_count: int
+    errors: list[ImportRowError]
+    created_places: list[str]

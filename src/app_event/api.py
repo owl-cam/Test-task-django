@@ -1,21 +1,53 @@
-from ninja import Query, Router
+from django.http import HttpResponse
+from ninja import File, Query, Router
 from ninja.errors import HttpError
+from ninja.files import UploadedFile
 from ninja_jwt.authentication import JWTAuth
 
 from app_event.domain import EventOrder
 from app_event.service import EventService
+from app_event.xlsx import EventXlsxService
 
 from .schema import (
     EventCreateSchema,
+    EventExportFilterSchema,
     EventFilterSchema,
     EventListSchema,
     EventSchema,
     EventUpdateSchema,
+    ImportResultSchema,
 )
 
 event_router_v1 = Router(tags=["event"], auth=JWTAuth())
 
 service = EventService()
+xlsx_service = EventXlsxService()
+
+
+@event_router_v1.get("/export/xlsx")
+def export_xlsx(request, filters: Query[EventExportFilterSchema]):
+    if not request.user.is_superuser:
+        raise HttpError(403, "Forbidden")
+
+    filters_dict = filters.dict(exclude_none=True)
+    xlsx_data = xlsx_service.export_events(filters_dict)
+
+    response = HttpResponse(
+        xlsx_data.getvalue(),
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = 'attachment; filename="events.xlsx"'
+    return response
+
+
+@event_router_v1.post("/import/xlsx", response=ImportResultSchema)
+def import_xlsx(request, file: UploadedFile = File(...)):
+    if not request.user.is_superuser:
+        raise HttpError(403, "Forbidden")
+
+    file_data = file.read()
+    result = xlsx_service.import_events(file_data, author=request.user.username)
+    return result
 
 
 @event_router_v1.get("/{id}", response=EventSchema)
