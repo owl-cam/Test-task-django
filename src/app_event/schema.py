@@ -10,6 +10,12 @@ from .domain import EventCreateDomain, EventFilterDomain, EventStatus, EventUpda
 id_list_type = constr(strip_whitespace=True, pattern=r"^[0-9|,]+$")
 
 
+class EventImageSchema(Schema):
+    id: int
+    image: str
+    image_thumbnail: str
+
+
 class EventSchema(Schema):
     id: int
     published: bool
@@ -22,6 +28,7 @@ class EventSchema(Schema):
     place: EventPlaceSchema | None = None
     rate: int
     status: EventStatus
+    images: list[EventImageSchema] = []
 
 
 class EventListSchema(Schema):

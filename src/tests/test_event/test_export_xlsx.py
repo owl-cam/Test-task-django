@@ -6,7 +6,7 @@ from app_event.models import Event
 
 
 def test_export_xlsx_superuser(client, superuser_headers, published_event):
-    response = client.get("/v1/event/export/xlsx", headers=superuser_headers)
+    response = client.get("/v1/event/export", headers=superuser_headers)
     assert response.status_code == 200
     assert (
         response["Content-Type"]
@@ -27,12 +27,12 @@ def test_export_xlsx_superuser(client, superuser_headers, published_event):
 
 
 def test_export_xlsx_regular_user_forbidden(client, regular_user_headers):
-    response = client.get("/v1/event/export/xlsx", headers=regular_user_headers)
+    response = client.get("/v1/event/export", headers=regular_user_headers)
     assert response.status_code == 403
 
 
 def test_export_xlsx_unauthenticated(client):
-    response = client.get("/v1/event/export/xlsx")
+    response = client.get("/v1/event/export")
     assert response.status_code == 401
 
 
@@ -51,9 +51,7 @@ def test_export_xlsx_with_filters(
         status=Event.SOON,
     )
 
-    response = client.get(
-        "/v1/event/export/xlsx?rate_gte=15", headers=superuser_headers
-    )
+    response = client.get("/v1/event/export?rate_gte=15", headers=superuser_headers)
     assert response.status_code == 200
 
     wb = load_workbook(filename=BytesIO(response.content))
@@ -68,7 +66,7 @@ def test_export_xlsx_place_filter(
     client, superuser_headers, published_event, event_place
 ):
     response = client.get(
-        f"/v1/event/export/xlsx?place_id={event_place.id}", headers=superuser_headers
+        f"/v1/event/export?place_id={event_place.id}", headers=superuser_headers
     )
     assert response.status_code == 200
 

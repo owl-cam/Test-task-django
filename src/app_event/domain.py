@@ -18,6 +18,13 @@ class EventOrder(str, Enum):
     ENDDATE = "end_date"
 
 
+class EventImageDomain(BaseModel):
+    id: int
+    event_id: int
+    image: str
+    image_thumbnail: str
+
+
 class EventDomain(BaseModel):
     id: int
     published: bool
@@ -31,6 +38,7 @@ class EventDomain(BaseModel):
     place: EventPlaceDomain | None = None
     rate: int
     status: EventStatus
+    images: list[EventImageDomain] = []
 
 
 class EventListDomain(BaseModel):

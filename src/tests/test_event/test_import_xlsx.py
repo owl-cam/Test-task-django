@@ -65,7 +65,7 @@ def test_import_xlsx_superuser_success(client, superuser_headers, event_place, d
     file = _create_file(rows)
 
     response = client.post(
-        "/v1/event/import/xlsx",
+        "/v1/event/import",
         headers=superuser_headers,
         FILES={"file": file},
     )
@@ -84,7 +84,7 @@ def test_import_xlsx_superuser_success(client, superuser_headers, event_place, d
 def test_import_xlsx_regular_user_forbidden(client, regular_user_headers, db):
     file = _create_file([])
     response = client.post(
-        "/v1/event/import/xlsx",
+        "/v1/event/import",
         headers=regular_user_headers,
         FILES={"file": file},
     )
@@ -94,7 +94,7 @@ def test_import_xlsx_regular_user_forbidden(client, regular_user_headers, db):
 def test_import_xlsx_unauthenticated(client, db):
     file = _create_file([])
     response = client.post(
-        "/v1/event/import/xlsx",
+        "/v1/event/import",
         FILES={"file": file},
     )
     assert response.status_code == 401
@@ -103,7 +103,7 @@ def test_import_xlsx_unauthenticated(client, db):
 def test_import_xlsx_empty_file(client, superuser_headers, db):
     file = _create_file([])
     response = client.post(
-        "/v1/event/import/xlsx",
+        "/v1/event/import",
         headers=superuser_headers,
         FILES={"file": file},
     )
@@ -131,7 +131,7 @@ def test_import_xlsx_missing_required_fields(client, superuser_headers, db):
     file = _create_file(rows)
 
     response = client.post(
-        "/v1/event/import/xlsx",
+        "/v1/event/import",
         headers=superuser_headers,
         FILES={"file": file},
     )
@@ -159,7 +159,7 @@ def test_import_xlsx_invalid_rate(client, superuser_headers, event_place, db):
     file = _create_file(rows)
 
     response = client.post(
-        "/v1/event/import/xlsx",
+        "/v1/event/import",
         headers=superuser_headers,
         FILES={"file": file},
     )
@@ -186,7 +186,7 @@ def test_import_xlsx_creates_new_place(client, superuser_headers, db):
     file = _create_file(rows)
 
     response = client.post(
-        "/v1/event/import/xlsx",
+        "/v1/event/import",
         headers=superuser_headers,
         FILES={"file": file},
     )
@@ -217,7 +217,7 @@ def test_import_xlsx_place_without_coords(client, superuser_headers, db):
     file = _create_file(rows)
 
     response = client.post(
-        "/v1/event/import/xlsx",
+        "/v1/event/import",
         headers=superuser_headers,
         FILES={"file": file},
     )
@@ -244,16 +244,14 @@ def test_import_xlsx_invalid_date_format(client, superuser_headers, db):
     file = _create_file(rows)
 
     response = client.post(
-        "/v1/event/import/xlsx",
+        "/v1/event/import",
         headers=superuser_headers,
         FILES={"file": file},
     )
     assert response.status_code == 200
     data = response.json()
     assert data["success"] is False
-    assert any(
-        e["field"] == "Дата и время начала проведения" for e in data["errors"]
-    )
+    assert any(e["field"] == "Дата и время начала проведения" for e in data["errors"])
 
 
 def test_import_xlsx_multiple_events(client, superuser_headers, event_place, db):
@@ -284,7 +282,7 @@ def test_import_xlsx_multiple_events(client, superuser_headers, event_place, db)
     file = _create_file(rows)
 
     response = client.post(
-        "/v1/event/import/xlsx",
+        "/v1/event/import",
         headers=superuser_headers,
         FILES={"file": file},
     )
@@ -306,7 +304,7 @@ def test_import_xlsx_invalid_file(client, superuser_headers, db):
     )
 
     response = client.post(
-        "/v1/event/import/xlsx",
+        "/v1/event/import",
         headers=superuser_headers,
         FILES={"file": file},
     )

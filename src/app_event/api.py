@@ -12,6 +12,7 @@ from .schema import (
     EventCreateSchema,
     EventExportFilterSchema,
     EventFilterSchema,
+    EventImageSchema,
     EventListSchema,
     EventSchema,
     EventUpdateSchema,
@@ -24,7 +25,7 @@ service = EventService()
 xlsx_service = EventXlsxService()
 
 
-@event_router_v1.get("/export/xlsx")
+@event_router_v1.get("/export")
 def export_xlsx(request, filters: Query[EventExportFilterSchema]):
     if not request.user.is_superuser:
         raise HttpError(403, "Forbidden")
@@ -40,14 +41,28 @@ def export_xlsx(request, filters: Query[EventExportFilterSchema]):
     return response
 
 
-@event_router_v1.post("/import/xlsx", response=ImportResultSchema)
-def import_xlsx(request, file: UploadedFile = File(...)):
+@event_router_v1.post("/import", response=ImportResultSchema)
+def import_xlsx(request, file: File[UploadedFile]):
     if not request.user.is_superuser:
         raise HttpError(403, "Forbidden")
 
     file_data = file.read()
     result = xlsx_service.import_events(file_data, author=request.user.username)
     return result
+
+
+@event_router_v1.post("/image", response=EventImageSchema)
+def upload_image(request, event_id: int, image: File[UploadedFile]):
+    if not request.user.is_superuser:
+        raise HttpError(403, "Forbidden")
+    return service.upload_image(image, event_id)
+
+
+@event_router_v1.delete("/image/{id}", response={204: None})
+def delete_image(request, id: int):
+    if not request.user.is_superuser:
+        raise HttpError(403, "Forbidden")
+    return service.remove_image(id)
 
 
 @event_router_v1.get("/{id}", response=EventSchema)

@@ -1,6 +1,10 @@
+import os
+
+from django.conf import settings
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from ninja.files import UploadedFile
 
 from app_event_place.domain import EventPlaceDomain
 from app_weather.domain import WeatherDomain
@@ -9,11 +13,12 @@ from .domain import (
     EventCreateDomain,
     EventDomain,
     EventFilterDomain,
+    EventImageDomain,
     EventListDomain,
     EventOrder,
     EventUpdateDomain,
 )
-from .models import Event
+from .models import Event, EventImage
 
 
 class EventService:
@@ -61,6 +66,25 @@ class EventService:
     def delete(self, item_id: int) -> None:
         db_model = get_object_or_404(Event, pk=item_id)
         db_model.delete()
+
+    def upload_image(self, image: UploadedFile, item_id: int) -> EventImageDomain:
+        get_object_or_404(Event, pk=item_id)
+        db_model = EventImage.objects.create(image=image, event_id=item_id)
+        return EventImageDomain(
+            id=db_model.pk,
+            event_id=db_model.event_id,
+            image=db_model.image.url,
+            image_thumbnail=db_model.image_thumbnail.url,
+        )
+
+    def remove_image(self, image_id: int):
+        item = get_object_or_404(EventImage, pk=image_id)
+        try:
+            os.remove(settings.BASE_DIR / item.image.path)
+            os.remove(settings.BASE_DIR / item.image_thumbnail.path)
+        except FileNotFoundError:
+            pass
+        item.delete()
 
     def _get_one(self, filters: EventFilterDomain) -> EventDomain:
         filters_list, filters_dict = self._prepare_filters(filters)
@@ -128,6 +152,15 @@ class EventService:
                 lat=event.place.lat,
                 weather=weather,
             )
+        images = [
+            EventImageDomain(
+                id=_.pk,
+                event_id=_.event_id,
+                image=_.image.url,
+                image_thumbnail=_.image_thumbnail.url,
+            )
+            for _ in EventImage.objects.filter(event_id=event.id)
+        ]
         return EventDomain(
             id=event.id,
             published=event.published,
@@ -141,4 +174,5 @@ class EventService:
             place=place,
             rate=event.rate,
             status=event.status,
+            images=images,
         )
