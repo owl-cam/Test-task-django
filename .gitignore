@@ -13,3 +13,5 @@ wheels/
 # Project ignore
 db_data
 media
+celerybeat_schedule
+.DS_Store

@@ -5,8 +5,6 @@ services:
     container_name: test-server
     command: uv run manage.py runserver 0.0.0.0:8000
     # restart: always
-    environment:
-      DJANGO_SETTINGS_MODULE: "settings.base"
     env_file:
       - src/.env
     ports:
@@ -31,8 +29,6 @@ services:
     build: .
     container_name: test-celery-worker
     command: uv run celery -A proj worker -l info
-    environment:
-      DJANGO_SETTINGS_MODULE: "settings.base"
     env_file:
       - src/.env
     volumes:
@@ -45,8 +41,6 @@ services:
     build: .
     container_name: test-celery-beat
     command: uv run celery -A proj beat -l info
-    environment:
-      DJANGO_SETTINGS_MODULE: "settings.base"
     env_file:
       - src/.env
     volumes:

@@ -23,7 +23,7 @@ def _require_superuser(request):
 @event_place_router_v1.get("/{id}", response=EventPlaceSchema)
 def get_by_id(request, id: int):
     _require_superuser(request)
-    return EventPlace.objects.filter(pk=id).first()
+    return get_object_or_404(EventPlace, pk=id)
 
 
 @event_place_router_v1.get("", response=EventPlaceListSchema)

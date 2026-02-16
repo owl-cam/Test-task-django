@@ -21,8 +21,6 @@ def update_weather():
                 "key": settings.WEATHER_API_KEY,
             },
         )
-        print(data.status_code)
-        print(data.json())
         if data.status_code != 200:
             continue
         json_data = data.json()["current"]

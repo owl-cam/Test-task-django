@@ -1,4 +1,6 @@
 from django.db.models import Q
+from django.http import Http404
+from django.shortcuts import get_object_or_404
 
 from app_event_place.domain import EventPlaceDomain
 from app_weather.domain import WeatherDomain
@@ -15,11 +17,11 @@ from .models import Event
 
 
 class EventService:
-    def get_by_id(self, current_user, item_id: int) -> EventDomain | None:
+    def get_by_id(self, current_user, item_id: int) -> EventDomain:
         filters = EventFilterDomain(id=item_id)
         if not getattr(current_user, "is_superuser", False):
             filters.published = True
-            return self._get_one(filters)
+        return self._get_one(filters)
 
     def get_list(
         self,
@@ -37,9 +39,10 @@ class EventService:
         filters_list, filters_dict = self._prepare_filters(filters)
         data = Event.objects.select_related("place", "place__weather").filter(
             *filters_list, **filters_dict
-        )[offset : limit + offset]
+        )
         if order:
-            data.order_by(order)
+            data = data.order_by(order.value)
+        data = data[offset : limit + offset]
         data = [self._to_domain(_) for _ in data]
         return EventListDomain(data=data, total=total, limit=limit, offset=offset)
 
@@ -48,22 +51,18 @@ class EventService:
         db_model.save()
         return self._get_one(EventFilterDomain(id=db_model.pk))
 
-    def update(self, item_id: int, data: EventUpdateDomain) -> EventDomain | None:
-        db_model = Event.objects.filter(pk=item_id).first()
-        if not db_model:
-            return
+    def update(self, item_id: int, data: EventUpdateDomain) -> EventDomain:
+        db_model = get_object_or_404(Event, pk=item_id)
         for attr, value in data.model_dump(exclude_unset=True).items():
             setattr(db_model, attr, value)
         db_model.save()
         return self._get_one(EventFilterDomain(id=item_id))
 
     def delete(self, item_id: int) -> None:
-        db_model = Event.objects.filter(pk=item_id).first()
-        if not db_model:
-            return
+        db_model = get_object_or_404(Event, pk=item_id)
         db_model.delete()
 
-    def _get_one(self, filters: EventFilterDomain) -> EventDomain | None:
+    def _get_one(self, filters: EventFilterDomain) -> EventDomain:
         filters_list, filters_dict = self._prepare_filters(filters)
         db_model = (
             Event.objects.select_related("place", "place__weather")
@@ -71,7 +70,7 @@ class EventService:
             .first()
         )
         if not db_model:
-            return
+            raise Http404
         return self._to_domain(db_model)
 
     def _count(self, filters: EventFilterDomain) -> int:
